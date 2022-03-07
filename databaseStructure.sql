@@ -1,9 +1,23 @@
 BEGIN;
 
-CREATE CREATE TABLE IF NOT EXISTS "cinema"(
+-- Regex
+
+DROP EXTENSION IF EXISTS unaccent;
+
+CREATE EXTENSION unaccent;
+
+CREATE DOMAIN TEXT_ONLY AS TEXT CHECK(unaccent(VALUE) ~ '^[A-Za-z \-]+$');
+CREATE DOMAIN ALPHANUM AS TEXT CHECK(unaccent(VALUE) ~ '^[A-Za-z\ \-\#\d]+$');
+CREATE DOMAIN TEXT_MAIL AS TEXT CHECK(VALUE ~ '(^[a-z\d\.\-\_]+)@{1}([a-z\d\.\-]{2,})[.]([a-z]{2,5})$');
+CREATE DOMAIN POSTAL_REGEX AS TEXT CHECK (VALUE ~ '(?!^00)\d{5}$');
+-- create domain text_pwd
+
+-- Tables creation
+
+CREATE TABLE IF NOT EXISTS "cinema"(
 "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-"name" TEXT NOT NULL UNIQUE, 
-"adress" TEXT NOT NULL,
+"name" ALPHANUM NOT NULL UNIQUE, 
+"adress" ALPHANUM NOT NULL,
 "zip" TEXT NOT NULL,
 "city" TEXT NOT NULL
 );
