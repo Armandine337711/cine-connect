@@ -13,6 +13,7 @@ CREATE DOMAIN ALPHANUM AS TEXT CHECK(unaccent(VALUE) ~ '^[A-Za-z\ \-\#\d]+$');
 CREATE DOMAIN TEXT_MAIL AS TEXT CHECK(VALUE ~ '(^[a-z\d\.\-\_]+)@{1}([a-z\d\.\-]{2,})[.]([a-z]{2,5})$');
 CREATE DOMAIN TEXT_CP AS TEXT CHECK (VALUE ~ '(?!^00)\d{5}$');
 CREATE DOMAIN TEXT_PWD AS TEXT CHECK (VALUE ~ '^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[-+!*$@%_])([-+!*$@%_\w]{8,})$');
+
 -- Tables creation
 
 CREATE TABLE IF NOT EXISTS "cinema"(
@@ -69,6 +70,27 @@ CREATE TABLE IF NOT EXISTS "booking"(
 "client_id" INT NOT NULL REFERENCES "client"("id"),
 "session_id" INT NOT NULL REFERENCES "session"("id"),
 "price_id" INT NOT NULL REFERENCES "price"("id"),
-"nb_seat" INT NOT NULL
+"nb_seat" INT NOT NULL,
+"payment_id" INT NOT NULL REFERENCES "payment"("id")
 );
+
+-- basic datas 
+
+INSERT INTO "price"("category", "amount") VALUES
+('Plein tarif', 9.20),
+('Etudiant', 7.60),
+('Moins de 14 ans', 5.90);
+
+INSERT INTO "payment"("entitled") VALUES
+('CB'),
+('Virement'),
+('Sur place')
+
+
+---------------------------------------------------
+-- VIEWS AND FUNCTIONS
+---------------------------------------------------
+
+-- Ajouter un film
+
 COMMIT;
