@@ -94,8 +94,8 @@ INSERT INTO "payment"("entitled") VALUES
 ---------------------------------------------------
 -- VIEWS AND FUNCTIONS
 ---------------------------------------------------
-DROP VIEW IF EXISTS "session_list" CASCADE;
-DROP VIEW IF EXISTS "available_seats" CASCADE;
+DROP VIEW IF EXISTS "session_list", "available_seats", "room_list" CASCADE;
+
 
 -- VIEW liste des salles rattachées à leur cinema
 CREATE VIEW "rooms_list" AS
@@ -152,7 +152,7 @@ SELECT s."id",
        m."duration",
        pr."seat_quantity",
        avs."remaining_seats"
-    ORDER BY s.date_time;
+    ORDER BY s."date_time";
 
 -- FUNCTIONS
 

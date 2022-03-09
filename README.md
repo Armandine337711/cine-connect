@@ -27,33 +27,38 @@ Remplacer [NomBase] par le nom souhaité de la base de données
 
 des cinémas et salles de projection -> `SELECT * FROM "rooms_list";`
 des clients -> `SELECT * FROM "client";`
+des films -> `SELECT * FROM "movie"`
+des tarifs -> `SELECT * FROM "price";`
+des moyens de paiement -> `SELECT * FROM payment;`
 
-### Liste des séances avec le nombre de places disponibles
-
-```sql
-SELECT * FROM "session_list";
-```
+des séances avec le nombre de places disponibles -> `SELECT * FROM "session_list";`
+des cinémas et des salles de projection -> `SELECT * FROM "rooms_list";`
 
 ### Nouveau film
 
 ```sql
-SELECT new_movie('[titre]', '[realisateur]', [Année de sortie], '[duree au format hh:mm]');
-SELECT new_movie('E.T.', 'Steven Spielberg', 1982, '01:55');
+SELECT "new_movie"('[titre]', '[realisateur]', [Année de sortie], '[duree au format hh:mm]');
+SELECT "new_movie"('E.T.', 'Steven Spielberg', 1982, '01:55');
 ```
 
 ### Nouvelle séance
 
-Pour cela il est nécessaire d'afficher la `room_list` (voir plus haut) et la liste des films `SELECT * FROM "movie"` pour récupérer les id nécessaires
+Pour cela il est nécessaire d'afficher la `room_list` (voir plus haut) et la liste des films pour récupérer les id nécessaires
+
+```sql
+SELECT "new_session"([movie_id], [projection_room_id], '[date au format YYYY-MM-DD HH:MM]');
+SELECT "new_session"(4, 3, '2022-03-30 14:00');
+```
 
 ### Nouveau client
 
 ```sql
-SELECT new_client('Marie', 'Aristocats', 'marie@mail.fr', 'Mycatsare_3');
-SELECT new_client('[firstname]', '[lastname]', '[email]', '[password]');
+SELECT "new_client"('Marie', 'Aristocats', 'marie@mail.fr', 'Mycatsare_3');
+SELECT "new_client"('[firstname]', '[lastname]', '[email]', '[password]');
 ```
 ### Nouvelle réservation
 
 ```sql
-SELECT new_booking([client_id], [session_id], [price_id], [nb_seat], [payment_id]);
-SELECT new_booking(3, 6, 2, 4, 3);
+SELECT "new_booking"([client_id], [session_id], [price_id], [nb_seat], [payment_id]);
+SELECT "new_booking"(3, 6, 2, 4, 3);
 ```
