@@ -99,13 +99,13 @@ DROP VIEW IF EXISTS "available_seats" CASCADE;
 
 -- VIEW liste des salles rattachées à leur cinema
 CREATE VIEW "rooms_list" AS
-SELECT c.id AS cinema_id,
-       c.name,
-       pr.room_name,
-       pr.id as projection_room_id,
-       pr.seat_quantity
+SELECT c."id" AS cinema_id,
+       c."name",
+       pr."room_name",
+       pr."id" as projection_room_id,
+       pr."seat_quantity"
     FROM cinema c
-    JOIN projection_room pr ON pr.cinema_id = c.id;
+    JOIN projection_room pr ON pr."cinema_id" = c."id";
 
 
 --VIEW available places
@@ -161,40 +161,36 @@ DROP FUNCTION IF EXISTS "new_movie", "new_session", "new_client", "new_booking" 
 ---- add a session
 CREATE FUNCTION "new_movie"("title" ALPHANUM, "director" TEXT_ONLY, "year" INT, "duration" TIME) RETURNS SETOF movie AS
 $$
-INSERT INTO "movie"("title", "director", "year", "duration") VALUES (title, director, year, duration) RETURNING *;
+INSERT INTO "movie"("title", "director", "year", "duration") VALUES ($1, $2, $3, $4) RETURNING *;
 $$
 LANGUAGE sql VOLATILE STRICT;
 
 --- add a session
 CREATE FUNCTION "new_session"("movie_id" INT, "projection_room_id" INT, "date_time" TIMESTAMPTZ) RETURNS SETOF session AS
 $$
-INSERT INTO "session"("movie_id", "projection_room_id", "date_time") VALUES (movie_id, projection_room_id, date_time) RETURNING *;
+INSERT INTO "session"("movie_id", "projection_room_id", "date_time") VALUES ($1, $2, $3) RETURNING *;
 $$
 LANGUAGE sql VOLATILE STRICT;
 
 --- add a client
 CREATE FUNCTION "new_client"("firstname" TEXT_ONLY, "lastname" TEXT_ONLY, "email" TEXT_MAIL, "pwd" TEXT_PWD) RETURNS SETOF client AS
 $$
-INSERT INTO "client"("firstname", "lastname", "email", "password") VALUES (firstname, lastname, email, pwd) RETURNING *
+INSERT INTO "client"("firstname", "lastname", "email", "password") VALUES ($1, $2, $3, $4) RETURNING *
 $$
 LANGUAGE sql VOLATILE STRICT;
 
-
-
-
 -- --- add a booking
-CREATE OR REPLACE FUNCTION "new_booking"("client_id" INT, "session_id" INT, "price_id" INT, "nb_seat" INT, "payment_id" INT) RETURNS TEXT AS $$
-
+CREATE OR REPLACE FUNCTION "new_booking"("client_id" INT, "session_id" INT, "price_id" INT, "nb_seat" INT, "payment_id" INT) RETURNS TEXT AS
+$$
 DECLARE 
     total_price FLOAT;
-
 BEGIN
-INSERT INTO "booking"("client_id", "session_id", "price_id", "nb_seat", "payment_id") VALUES (client_id, session_id, price_id, nb_seat, payment_id);
-SELECT (p."amount" * nb_seat) INTO total_price
+INSERT INTO "booking"("client_id", "session_id", "price_id", "nb_seat", "payment_id") VALUES ($1, $2, $3, $4, $5);
+SELECT (p."amount" * $4) INTO total_price
     FROM price p
     WHERE p.id  = price_id;
-return 'Montant à payer : ' || (total_price::float)::text || ' €';
-end;
+RETURN 'Montant à payer : ' || (total_price::float)::text || ' €';
+END;
 $$ LANGUAGE plpgsql VOLATILE STRICT;
 
 COMMIT;
