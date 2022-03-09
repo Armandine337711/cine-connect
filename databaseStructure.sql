@@ -20,15 +20,15 @@ DROP TABLE IF EXISTS "cinema", "projection_room", "movie", "client", "price", "p
 CREATE TABLE IF NOT EXISTS "cinema"(
 "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 "name" ALPHANUM NOT NULL UNIQUE, 
-"adress" ALPHANUM NOT NULL,
+"address" ALPHANUM NOT NULL,
 "zip" TEXT_CP NOT NULL,
 "city" TEXT_ONLY NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "projection_room"(
 "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-"room-name" ALPHANUM NOT NULL,
-"seat-quantity" INT NOT NULL,
+"room_name" ALPHANUM NOT NULL,
+"seat_quantity" INT NOT NULL,
 "cinema_id" INT NOT NULL REFERENCES "cinema"("id")
 );
 
@@ -95,6 +95,6 @@ INSERT INTO "payment"("entitled") VALUES
 -- VIEWS AND FUNCTIONS
 ---------------------------------------------------
 
--- Ajouter un film
+
 
 COMMIT;
