@@ -1,12 +1,11 @@
 BEGIN;
-
 -- Regex
 
-DROP EXTENSION IF EXISTS unaccent;
+DROP EXTENSION IF EXISTS unaccent CASCADE;
 
 CREATE EXTENSION unaccent;
 
-DROP DOMAIN IF EXISTS TEXT_ONLY, ALPHANUM, TEXT_MAIL, POSTAL_REGEX, TEXT_PWD
+DROP DOMAIN IF EXISTS TEXT_ONLY, ALPHANUM, TEXT_MAIL, TEXT_CP, TEXT_PWD CASCADE;
 
 CREATE DOMAIN TEXT_ONLY AS TEXT CHECK(unaccent(VALUE) ~ '^[A-Za-z \-]+$');
 CREATE DOMAIN ALPHANUM AS TEXT CHECK(unaccent(VALUE) ~ '^[A-Za-z\ \-\#\d]+$');
@@ -16,6 +15,8 @@ CREATE DOMAIN TEXT_PWD AS TEXT CHECK (VALUE ~ '^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?
 
 -- Tables creation
 
+DROP TABLE IF EXISTS "cinema", "projection_room", "movie", "client", "price", "payment", "session", "booking" CASCADE;
+
 CREATE TABLE IF NOT EXISTS "cinema"(
 "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 "name" ALPHANUM NOT NULL UNIQUE, 
@@ -24,7 +25,7 @@ CREATE TABLE IF NOT EXISTS "cinema"(
 "city" TEXT_ONLY NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS "projection-room"(
+CREATE TABLE IF NOT EXISTS "projection_room"(
 "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 "room-name" ALPHANUM NOT NULL,
 "seat-quantity" INT NOT NULL,
@@ -61,7 +62,7 @@ CREATE TABLE IF NOT EXISTS "payment"(
 CREATE TABLE IF NOT EXISTS "session"(
 "id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 "movie_id" INT NOT NULL REFERENCES "movie"("id"),
-"projection-room_id" INT NOT NULL REFERENCES "projection_room"("id"),
+"projection_room_id" INT NOT NULL REFERENCES "projection_room"("id"),
 "date_time" TIMESTAMPTZ NOT NULL
 );
 
@@ -76,6 +77,9 @@ CREATE TABLE IF NOT EXISTS "booking"(
 
 -- basic datas 
 
+TRUNCATE TABLE "price" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "payment" RESTART IDENTITY CASCADE;
+
 INSERT INTO "price"("category", "amount") VALUES
 ('Plein tarif', 9.20),
 ('Etudiant', 7.60),
@@ -84,7 +88,7 @@ INSERT INTO "price"("category", "amount") VALUES
 INSERT INTO "payment"("entitled") VALUES
 ('CB'),
 ('Virement'),
-('Sur place')
+('Sur place');
 
 
 ---------------------------------------------------
