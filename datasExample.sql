@@ -14,10 +14,10 @@ INSERT INTO "projection_room"("room_name", "seat_quantity", "cinema_id") VALUES
 ('Salle 1', 250, 2),
 ('Salle A', 200, 3);
 
-INSERT INTO "movie"("title", "director", "year", "duration (mn)") VALUES
-('Maison de retraite', 'Thomas Gilou', 2022, 97),
-('Zaï Zaî Zaï Zaî', 'François Desagnat', 2022, 82),
-('Mort sur le Nil', 'Kenneth Branagh', 2022, 127);
+INSERT INTO "movie"("title", "director", "year", "duration") VALUES
+('Maison de retraite', 'Thomas Gilou', 2022, '01:37'),
+('Zaï Zaî Zaï Zaî', 'François Desagnat', 2022, '01:22'),
+('Mort sur le Nil', 'Kenneth Branagh', 2022, '02:07');
 
 INSERT INTO "client"("firstname", "lastname", "email", "password") VALUES
 ('Mickey', 'Mouse', 'mickey@mail.fr', 'Mdp@145zer+'),
