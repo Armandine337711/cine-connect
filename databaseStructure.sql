@@ -8,7 +8,7 @@ CREATE EXTENSION unaccent;
 DROP DOMAIN IF EXISTS TEXT_ONLY, ALPHANUM, TEXT_MAIL, TEXT_CP, TEXT_PWD CASCADE;
 
 CREATE DOMAIN TEXT_ONLY AS TEXT CHECK(unaccent(VALUE) ~ '^[A-Za-z \-]+$');
-CREATE DOMAIN ALPHANUM AS TEXT CHECK(unaccent(VALUE) ~ '^[A-Za-z\ \-\#\d]+$');
+CREATE DOMAIN ALPHANUM AS TEXT CHECK(unaccent(VALUE) ~ '^[A-Za-z\.\ \-\#\d]+$');
 CREATE DOMAIN TEXT_MAIL AS TEXT CHECK(VALUE ~ '(^[a-z\d\.\-\_]+)@{1}([a-z\d\.\-]{2,})[.]([a-z]{2,5})$');
 CREATE DOMAIN TEXT_CP AS TEXT CHECK (VALUE ~ '(?!^00)\d{5}$');
 CREATE DOMAIN TEXT_PWD AS TEXT CHECK (VALUE ~ '^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[-+!*$@%_])([-+!*$@%_\w]{8,})$');
@@ -94,51 +94,107 @@ INSERT INTO "payment"("entitled") VALUES
 ---------------------------------------------------
 -- VIEWS AND FUNCTIONS
 ---------------------------------------------------
---VIEW available places
-DROP VIEW IF EXISTS session_list CASCADE;
-DROP VIEW IF EXISTS available_seats CASCADE;
+DROP VIEW IF EXISTS "session_list" CASCADE;
+DROP VIEW IF EXISTS "available_seats" CASCADE;
 
-CREATE VIEW available_seats AS
-SELECT s.id AS session_id,
-        (pr.seat_quantity -
-        (CASE WHEN SUM(b.nb_seat) IS NULL
+-- VIEW liste des salles rattachées à leur cinema
+CREATE VIEW "rooms_list" AS
+SELECT c.id AS cinema_id,
+       c.name,
+       pr.room_name,
+       pr.id as projection_room_id,
+       pr.seat_quantity
+    FROM cinema c
+    JOIN projection_room pr ON pr.cinema_id = c.id;
+
+
+--VIEW available places
+
+
+CREATE VIEW "available_seats" AS
+SELECT s."id" AS "session_id",
+        (pr."seat_quantity" -
+        (CASE WHEN SUM(b."nb_seat") IS NULL
                 THEN 0
-                ELSE SUM(b.nb_seat) END)) AS remaining_seats
+                ELSE SUM(b."nb_seat") END)) AS "remaining_seats"
     FROM "session" s
-    LEFT OUTER JOIN projection_room pr ON pr.id = s.projection_room_id
-    LEFT OUTER JOIN booking b on b.session_id = s.id
-    GROUP BY s.id,
-            pr.seat_quantity;
+    LEFT OUTER JOIN "projection_room" pr ON pr."id" = s."projection_room_id"
+    LEFT OUTER JOIN "booking" b on b."session_id" = s."id"
+    GROUP BY s."id",
+            pr."seat_quantity";
 
 -- Liste des films programmés
 
-CREATE VIEW session_list AS
-SELECT s.id,
-       c.name,
-       c.city,
-       pr.room_name,
-       m.title,
-       m.director,
-       m.year,
-       to_char(DATE(s.date_time), 'DD/MM/YYYY') AS "diffusion_date",
-       date_trunc('minute',s.date_time - date_trunc('day', s.date_time)) as begin_hour,
-       (date_trunc('minute',s.date_time - date_trunc('day', s.date_time)) + m.duration) AS end_hour,
-       avs.remaining_seats 
+CREATE VIEW "session_list" AS
+SELECT s."id",
+       c."name",
+       c."city",
+       pr."room_name",
+       m."title",
+       m."director",
+       m."year",
+       to_char(DATE(s."date_time"), 'DD/MM/YYYY') AS "diffusion_date",
+       date_trunc('minute',s."date_time" - "date_trunc"('day', s."date_time")) as "begin_hour",
+       (date_trunc('minute',s."date_time" - "date_trunc"('day', s."date_time")) + m."duration") AS "end_hour",
+       avs."remaining_seats" 
     FROM session s 
-    JOIN projection_room pr ON pr.id = s.projection_room_id
-    JOIN cinema c ON c.id = pr.cinema_id
-    JOIN movie m ON s.movie_id = m.id
-    JOIN available_seats avs on avs.session_id = s.id
+    JOIN "projection_room" pr ON pr.id = s."projection_room_id"
+    JOIN "cinema" c ON c."id" = pr."cinema_id"
+    JOIN "movie" m ON s."movie_id" = m."id"
+    JOIN "available_seats" avs on avs."session_id" = s."id"
     GROUP BY s.id,
-       c.name,
-       c.city,
-       pr.room_name,
-       m.title,
-       m.director,
-       m.year,
-       m.duration,
-       (pr.seat_quantity),
-       avs.remaining_seats;
+       c."name",
+       c."city",
+       pr."room_name",
+       m."title",
+       m."director",
+       m."year",
+       m."duration",
+       pr."seat_quantity",
+       avs."remaining_seats"
+    ORDER BY s.date_time;
 
+-- FUNCTIONS
+
+DROP FUNCTION IF EXISTS "new_movie", "new_session", "new_client", "new_booking" CASCADE;
+
+---- add a session
+CREATE FUNCTION "new_movie"("title" ALPHANUM, "director" TEXT_ONLY, "year" INT, "duration" TIME) RETURNS SETOF movie AS
+$$
+INSERT INTO "movie"("title", "director", "year", "duration") VALUES (title, director, year, duration) RETURNING *;
+$$
+LANGUAGE sql VOLATILE STRICT;
+
+--- add a session
+CREATE FUNCTION "new_session"("movie_id" INT, "projection_room_id" INT, "date_time" TIMESTAMPTZ) RETURNS SETOF session AS
+$$
+INSERT INTO "session"("movie_id", "projection_room_id", "date_time") VALUES (movie_id, projection_room_id, date_time) RETURNING *;
+$$
+LANGUAGE sql VOLATILE STRICT;
+
+--- add a client
+CREATE FUNCTION "new_client"("firstname" TEXT_ONLY, "lastname" TEXT_ONLY, "email" TEXT_MAIL, "pwd" TEXT_PWD) RETURNS SETOF client AS
+$$
+INSERT INTO "client"("firstname", "lastname", "email", "password") VALUES (firstname, lastname, email, pwd) RETURNING *
+$$
+LANGUAGE sql VOLATILE STRICT;
+
+
+
+
+-- --- add a booking
+CREATE OR REPLACE FUNCTION "new_booking"("client_id" INT, "session_id" INT, "price_id" INT, "nb_seat" INT, "payment_id" INT) RETURNS TEXT AS $$
+
+DECLARE 
+    total_price FLOAT;
+
+BEGIN
+INSERT INTO "booking"("client_id", "session_id", "price_id", "nb_seat", "payment_id") VALUES (client_id, session_id, price_id, nb_seat, payment_id);
+SELECT (p."amount" * nb_seat) INTO total_price
+    FROM price p
+    WHERE p.id  = price_id;
+return 'Montant à payer : ' || (total_price::float)::text || ' €';
+end;
+$$ LANGUAGE plpgsql VOLATILE STRICT;
 
 COMMIT;

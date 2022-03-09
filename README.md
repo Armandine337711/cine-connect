@@ -23,11 +23,37 @@ Remplacer [NomBase] par le nom souhaité de la base de données
 
 ## Requetes
 
-### Liste des cinémas
+### Listes
+
+des cinémas et salles de projection -> `SELECT * FROM "rooms_list";`
+des clients -> `SELECT * FROM "client";`
+
+### Liste des séances avec le nombre de places disponibles
 
 ```sql
-SELECT * FROM "cinema";
+SELECT * FROM "session_list";
 ```
 
-### Liste des films programmés 
+### Nouveau film
 
+```sql
+SELECT new_movie('[titre]', '[realisateur]', [Année de sortie], '[duree au format hh:mm]');
+SELECT new_movie('E.T.', 'Steven Spielberg', 1982, '01:55');
+```
+
+### Nouvelle séance
+
+Pour cela il est nécessaire d'afficher la `room_list` (voir plus haut) et la liste des films `SELECT * FROM "movie"` pour récupérer les id nécessaires
+
+### Nouveau client
+
+```sql
+SELECT new_client('Marie', 'Aristocats', 'marie@mail.fr', 'Mycatsare_3');
+SELECT new_client('[firstname]', '[lastname]', '[email]', '[password]');
+```
+### Nouvelle réservation
+
+```sql
+SELECT new_booking([client_id], [session_id], [price_id], [nb_seat], [payment_id]);
+SELECT new_booking(3, 6, 2, 4, 3);
+```
