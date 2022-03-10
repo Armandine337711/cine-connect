@@ -211,5 +211,23 @@ $$ LANGUAGE plpgsql VOLATILE STRICT;
 ---------------------------------------------------
 -- LES ROLES DES UTILISATEURS BACKEND
 ---------------------------------------------------
+--  1 create schemas
+-- CREATE SCHEMA "admin";
+
+-- CREATE SCHEMA "the_movie";
+-- ALTER TABLE "movie" SET SCHEMA "the_movies";
+-- ALTER FUNCTION "new_session" SET SCHEMA "the_movies";
+
+-- CREATE SCHEMA "the_client";
+-- ALTER FUNCTION "new_booking" SET SCHEMA "the_client";
+
+
+-- CREATE ROLE "database_manager";
+-- CREATE ROLE "complex_manager";
+-- CREATE ROLE "client";
+
+-- GRANT ALL ON ALL TO "database_manager";
+-- GRANT SELECT ON ALL TABLES TO "complex_manager";
+-- GRANT SELECT ON ALL TABLES TO "client";
 
 COMMIT;
