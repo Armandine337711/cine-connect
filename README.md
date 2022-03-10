@@ -17,9 +17,10 @@ cd cine-connect
     puis
     `CREATE DATABASE [NomBase];`
 Remplacer [NomBase] par le nom souhaité de la base de données
-    
--> installer databaseStructure.sql
--> installer des données d'exemple
+
+-> se connecter à la base de données : `psql [NomBase]`
+-> installer databaseStructure.sql : `\i databaseStructure.sql`
+-> installer des données d'exemple : `\i datasExample.sql`
 
 ## Requetes
 
@@ -60,5 +61,8 @@ SELECT "new_client"('[firstname]', '[lastname]', '[email]', '[password]');
 
 ```sql
 SELECT "new_booking"([client_id], [session_id], [price_id], [nb_seat], [payment_id]);
+-- exemple avec suffisamment de sièges restants
 SELECT "new_booking"(3, 6, 2, 4, 3);
+-- exemple avec une réservation trop importante
+SELECT "new_booking"(3, 6, 2, 450, 3);
 ```

@@ -113,6 +113,7 @@ SELECT c."id" AS cinema_id,
 
 CREATE VIEW "available_seats" AS
 SELECT s."id" AS "session_id",
+        pr."seat_quantity",
         (pr."seat_quantity" -
         (CASE WHEN SUM(b."nb_seat") IS NULL
                 THEN 0
@@ -184,13 +185,31 @@ CREATE OR REPLACE FUNCTION "new_booking"("client_id" INT, "session_id" INT, "pri
 $$
 DECLARE 
     total_price FLOAT;
+    remaining_seats INTEGER;
+    sentence TEXT;
 BEGIN
-INSERT INTO "booking"("client_id", "session_id", "price_id", "nb_seat", "payment_id") VALUES ($1, $2, $3, $4, $5);
-SELECT (p."amount" * $4) INTO total_price
-    FROM price p
-    WHERE p.id  = price_id;
-RETURN 'Montant à payer : ' || (total_price::float)::text || ' €';
+
+-- Verifying remaining seats
+    SELECT (ast."seat_quantity") INTO remaining_seats
+        FROM "available_seats" ast
+        WHERE ast."session_id" = $2;
+        
+    IF ($4 > remaining_seats) THEN
+        sentence := 'Pas assez de places disponibles. Choisissez une autre séance.';
+    ELSE
+
+        INSERT INTO "booking"("client_id", "session_id", "price_id", "nb_seat", "payment_id") VALUES ($1, $2, $3, $4, $5);
+        SELECT (p."amount" * $4) INTO total_price
+            FROM price p
+            WHERE p.id  = price_id;
+        sentence := 'Montant à payer : ' || (total_price::float)::text || ' €';
+    END IF;
+    RETURN sentence;
 END;
 $$ LANGUAGE plpgsql VOLATILE STRICT;
+
+---------------------------------------------------
+-- LES ROLES DES UTILISATEURS BACKEND
+---------------------------------------------------
 
 COMMIT;
